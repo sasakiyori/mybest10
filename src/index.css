@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* 自定义主题扩展 - 添加 xs 断点 */
+@theme {
+  --breakpoint-xs: 480px;
+}
+
+/* 基础样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 确保全屏高度 */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+/* 字体设置 */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 防止移动端字体缩放 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  line-height: 1.6;
+  color: #e2e8f0;
+  background-color: #0f172a;
+  /* 防止横向滚动 */
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh; /* 动态视口高度，适配移动端浏览器地址栏 */
+}
+
+/* 选中文本样式 */
+::selection {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #4f46e5;
+}
+
+/* 焦点样式 */
+:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 图片优化 */
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+/* 按钮重置 */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+}
+
+/* 输入框重置 */
+input, textarea {
+  font: inherit;
+}
+
+/* 链接样式 */
+a {
+  color: #6366f1;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #4f46e5;
+}
