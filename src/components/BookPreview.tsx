@@ -4,7 +4,7 @@
  * 需求: 3.5, 6.3
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -33,7 +33,7 @@ interface SortableBookItemProps {
   onCustomCoverUpload: (index: number, file: File) => void;
 }
 
-function SortableBookItem({ book, onRemove, onCustomCoverUpload }: SortableBookItemProps) {
+const SortableBookItem = React.memo(({ book, onRemove, onCustomCoverUpload }: SortableBookItemProps) => {
   const {
     attributes,
     listeners,
@@ -196,7 +196,8 @@ function SortableBookItem({ book, onRemove, onCustomCoverUpload }: SortableBookI
       </button>
     </div>
   );
-}
+});
+SortableBookItem.displayName = 'SortableBookItem';
 
 /**
  * BookPreview组件
@@ -214,9 +215,9 @@ export function BookPreview() {
   );
 
   /**
-   * 处理拖拽结束
+   * 处理拖拽结束 - 使用 useCallback 优化
    */
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -227,27 +228,27 @@ export function BookPreview() {
         reorderBooks(oldIndex, newIndex);
       }
     }
-  };
+  }, [books, reorderBooks]);
 
   /**
-   * 处理删除
+   * 处理删除 - 使用 useCallback 优化
    */
-  const handleRemove = (index: number) => {
+  const handleRemove = useCallback((index: number) => {
     removeBook(index);
-  };
+  }, [removeBook]);
 
   /**
    * 验证图片格式
    */
-  const validateImageFormat = (file: File): boolean => {
+  const validateImageFormat = useCallback((file: File): boolean => {
     const validFormats = ['image/jpeg', 'image/png', 'image/webp'];
     return validFormats.includes(file.type);
-  };
+  }, []);
 
   /**
    * 将文件转换为Data URL
    */
-  const fileToDataUrl = (file: File): Promise<string> => {
+  const fileToDataUrl = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -262,12 +263,12 @@ export function BookPreview() {
       };
       reader.readAsDataURL(file);
     });
-  };
+  }, []);
 
   /**
-   * 处理自定义封面上传
+   * 处理自定义封面上传 - 使用 useCallback 优化
    */
-  const handleCustomCoverUpload = async (index: number, file: File) => {
+  const handleCustomCoverUpload = useCallback(async (index: number, file: File) => {
     try {
       // 验证图片格式
       if (!validateImageFormat(file)) {
@@ -287,7 +288,7 @@ export function BookPreview() {
       console.error('Failed to upload custom cover:', err);
       setError('上传封面失败，请重试');
     }
-  };
+  }, [validateImageFormat, fileToDataUrl, updateCustomCover, setError]);
 
   // 过滤出已选择的书籍
   const selectedBooks = books.filter((book) => book.selectedBook);
