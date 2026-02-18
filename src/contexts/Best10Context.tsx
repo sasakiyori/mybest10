@@ -77,14 +77,14 @@ interface Best10ProviderProps {
  */
 export function Best10Provider({ children }: Best10ProviderProps) {
   // 初始化状态
-  const [books, setBooks] = useState<BookEntry[]>(createInitialBooks());
+  const [books, setBooks] = useState<BookEntry[]>(createInitialBooks);
   const [config, setConfig] = useState<GeneratorConfig>(DEFAULT_GENERATOR_CONFIG);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentSearchIndex, setCurrentSearchIndex] = useState<number | null>(null);
   
   // 使用 ref 来防止保存操作过于频繁
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const saveTimeoutRef = useRef<number | undefined>(undefined);
 
   // 从LocalStorage加载数据
   useEffect(() => {

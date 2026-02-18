@@ -21,7 +21,6 @@ interface BookInputItemProps {
 
 const BookInputItem = React.memo(({ book, index, onInputChange, onSearchClick }: BookInputItemProps) => (
   <div 
-    key={book.rank} 
     className="book-input-item group flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-slate-700/50 transition-all duration-200"
   >
     {/* 排名显示 */}

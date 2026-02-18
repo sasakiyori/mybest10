@@ -196,6 +196,17 @@ const SortableBookItem = React.memo(({ book, onRemove, onCustomCoverUpload }: So
       </button>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  // Only re-render if book data, rank, or handlers change
+  return (
+    prevProps.book.rank === nextProps.book.rank &&
+    prevProps.book.selectedBook?.id === nextProps.book.selectedBook?.id &&
+    prevProps.book.selectedBook?.coverUrl === nextProps.book.selectedBook?.coverUrl &&
+    prevProps.book.customCover === nextProps.book.customCover &&
+    prevProps.onRemove === nextProps.onRemove &&
+    prevProps.onCustomCoverUpload === nextProps.onCustomCoverUpload
+  );
 });
 SortableBookItem.displayName = 'SortableBookItem';
 
