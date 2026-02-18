@@ -197,8 +197,8 @@ const SortableBookItem = React.memo(({ book, onRemove, onCustomCoverUpload }: So
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison function for React.memo
-  // Only re-render if book data, rank, or handlers change
+  // Custom comparison for React.memo optimization
+  // Returns true when props are equal (skip re-render), false when different (re-render)
   return (
     prevProps.book.rank === nextProps.book.rank &&
     prevProps.book.selectedBook?.id === nextProps.book.selectedBook?.id &&

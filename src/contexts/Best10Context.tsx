@@ -128,7 +128,7 @@ export function Best10Provider({ children }: Best10ProviderProps) {
         console.error('Failed to save data to storage:', err);
         // 不设置error状态，避免干扰用户操作
       }
-    }, 500); // 500ms 防抖延迟
+    }, 500); // 500ms debounce delay
   }, [books, config]);
 
   // 当books或config变化时自动保存
@@ -136,11 +136,25 @@ export function Best10Provider({ children }: Best10ProviderProps) {
     saveToStorage();
   }, [saveToStorage]);
 
-  // 清理函数：组件卸载时清除定时器
+  // Cleanup function: clear pending timeout on component unmount
   useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
+        // Immediately save any pending changes before unmount
+        try {
+          const list: Best10List = {
+            id: generateId(),
+            name: config.title || '我的书籍BEST10',
+            books,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          saveBest10List(list);
+          saveConfig(config);
+        } catch (err) {
+          console.error('Failed to save data on unmount:', err);
+        }
       }
     };
   }, []);

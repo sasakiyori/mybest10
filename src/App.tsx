@@ -205,7 +205,7 @@ function AppContent() {
     if (currentSearchIndex === null) return '';
     const book = books[currentSearchIndex];
     return book?.bookName || '';
-  }, [currentSearchIndex, books[currentSearchIndex ?? -1]?.bookName]);
+  }, [currentSearchIndex, books]);
 
   // 处理清空所有
   const handleClearAll = useCallback(() => {
