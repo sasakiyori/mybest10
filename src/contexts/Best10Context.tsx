@@ -134,14 +134,16 @@ export function Best10Provider({ children }: Best10ProviderProps) {
   // 当books或config变化时自动保存
   useEffect(() => {
     saveToStorage();
-    
-    // 清理函数：组件卸载时清除定时器
+  }, [saveToStorage]);
+
+  // 清理函数：组件卸载时清除定时器
+  useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [saveToStorage]);
+  }, []);
 
   /**
    * 更新书名

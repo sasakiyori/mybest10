@@ -201,10 +201,11 @@ function AppContent() {
   }, [setCurrentSearchIndex]);
 
   // 获取当前搜索的书名
-  const currentSearchQuery = useMemo(() => 
-    currentSearchIndex !== null ? books[currentSearchIndex]?.bookName || '' : '',
-    [currentSearchIndex, books]
-  );
+  const currentSearchQuery = useMemo(() => {
+    if (currentSearchIndex === null) return '';
+    const book = books[currentSearchIndex];
+    return book?.bookName || '';
+  }, [currentSearchIndex, books[currentSearchIndex ?? -1]?.bookName]);
 
   // 处理清空所有
   const handleClearAll = useCallback(() => {
