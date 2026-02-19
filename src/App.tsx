@@ -4,7 +4,7 @@
  * 需求: 6.1, 6.2, 6.4
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Best10Provider, useBest10 } from './contexts/Best10Context';
 import { BookInputList } from './components/BookInputList';
 import { BookSearchModal } from './components/BookSearchModal';
@@ -16,7 +16,7 @@ import './App.css';
 /**
  * 步骤指引组件
  */
-function StepGuide({ currentStep }: { currentStep: number }) {
+const StepGuide = React.memo(({ currentStep }: { currentStep: number }) => {
   const steps = [
     { id: 1, title: '输入书名', icon: '📝', desc: '添加你喜欢的书籍' },
     { id: 2, title: '搜索选择', icon: '🔍', desc: '从豆瓣选择书籍信息' },
@@ -72,12 +72,13 @@ function StepGuide({ currentStep }: { currentStep: number }) {
       </div>
     </div>
   );
-}
+});
+StepGuide.displayName = 'StepGuide';
 
 /**
  * 加载动画组件
  */
-function LoadingSpinner({ message }: { message?: string }) {
+const LoadingSpinner = React.memo(({ message }: { message?: string }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm" data-testid="loading-spinner">
       <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 flex flex-col items-center animate-fade-in border border-slate-700">
@@ -91,12 +92,13 @@ function LoadingSpinner({ message }: { message?: string }) {
       </div>
     </div>
   );
-}
+});
+LoadingSpinner.displayName = 'LoadingSpinner';
 
 /**
  * 成功提示组件
  */
-function SuccessToast({ message, onClose }: { message: string; onClose: () => void }) {
+const SuccessToast = React.memo(({ message, onClose }: { message: string; onClose: () => void }) => {
   React.useEffect(() => {
     const timer = setTimeout(onClose, 3000);
     return () => clearTimeout(timer);
@@ -119,12 +121,13 @@ function SuccessToast({ message, onClose }: { message: string; onClose: () => vo
       <span className="font-medium">{message}</span>
     </div>
   );
-}
+});
+SuccessToast.displayName = 'SuccessToast';
 
 /**
  * 错误提示组件
  */
-function ErrorToast({ message, onClose }: { message: string; onClose: () => void }) {
+const ErrorToast = React.memo(({ message, onClose }: { message: string; onClose: () => void }) => {
   return (
     <div
       className="fixed top-4 right-4 z-50 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-4 rounded-xl shadow-lg shadow-rose-500/30 flex items-center space-x-3 animate-slide-in"
@@ -149,7 +152,8 @@ function ErrorToast({ message, onClose }: { message: string; onClose: () => void
       </button>
     </div>
   );
-}
+});
+ErrorToast.displayName = 'ErrorToast';
 
 /**
  * 主应用内容组件
@@ -158,56 +162,58 @@ function AppContent() {
   const { books, currentSearchIndex, setCurrentSearchIndex, error, setError, isLoading, clearAllBooks } = useBest10();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // 计算当前步骤
-  const hasInput = books.some(book => book.bookName.trim() !== '');
-  const hasSelected = books.some(book => book.selectedBook);
-  const currentStep = hasSelected ? 3 : hasInput ? 2 : 1;
+  // 计算当前步骤 - 使用 useMemo 优化
+  const hasInput = useMemo(() => books.some(book => book.bookName.trim() !== ''), [books]);
+  const hasSelected = useMemo(() => books.some(book => book.selectedBook), [books]);
+  const currentStep = useMemo(() => hasSelected ? 3 : hasInput ? 2 : 1, [hasSelected, hasInput]);
 
-  // 键盘快捷键支持
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + K: 聚焦到第一个空输入框
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        const firstEmptyInput = document.querySelector<HTMLInputElement>('input[data-testid^="book-input-"]:not([value])');
-        if (firstEmptyInput) {
-          firstEmptyInput.focus();
-        }
+  // 键盘快捷键支持 - 使用 useCallback 优化
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Ctrl/Cmd + K: 聚焦到第一个空输入框
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const firstEmptyInput = document.querySelector<HTMLInputElement>('input[data-testid^="book-input-"]:not([value])');
+      if (firstEmptyInput) {
+        firstEmptyInput.focus();
       }
-      
-      // Escape: 关闭弹窗
-      if (e.key === 'Escape' && currentSearchIndex !== null) {
-        setCurrentSearchIndex(null);
-      }
-      
-      // Ctrl/Cmd + S: 保存（实际上已自动保存，显示提示）
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        setSuccessMessage('数据已自动保存');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+    
+    // Escape: 关闭弹窗
+    if (e.key === 'Escape' && currentSearchIndex !== null) {
+      setCurrentSearchIndex(null);
+    }
+    
+    // Ctrl/Cmd + S: 保存（实际上已自动保存，显示提示）
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      setSuccessMessage('数据已自动保存');
+    }
   }, [currentSearchIndex, setCurrentSearchIndex]);
 
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   // 处理搜索弹窗关闭
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setCurrentSearchIndex(null);
-  };
+  }, [setCurrentSearchIndex]);
 
   // 获取当前搜索的书名
-  const currentSearchQuery = currentSearchIndex !== null
-    ? books[currentSearchIndex]?.bookName || ''
-    : '';
+  const currentSearchQuery = useMemo(() => {
+    if (currentSearchIndex === null) return '';
+    const book = books[currentSearchIndex];
+    return book?.bookName || '';
+  }, [currentSearchIndex, books]);
 
   // 处理清空所有
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     if (window.confirm('确定要清空所有书籍吗？此操作不可恢复。')) {
       clearAllBooks();
       setSuccessMessage('已清空所有书籍');
     }
-  };
+  }, [clearAllBooks]);
 
   return (
     <div className="min-h-screen min-h-dvh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">

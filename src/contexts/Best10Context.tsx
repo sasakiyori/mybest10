@@ -3,7 +3,7 @@
  * 全局状态管理，管理书籍列表、配置和UI状态
  */
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
 import type { BookEntry, GeneratorConfig, Best10List, DoubanBook } from '../types/models';
 import { DEFAULT_GENERATOR_CONFIG, VALIDATION_CONSTANTS } from '../types/constants';
 import { saveBest10List, loadBest10List, saveConfig, loadConfig } from '../services/storageService';
@@ -82,6 +82,9 @@ export function Best10Provider({ children }: Best10ProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentSearchIndex, setCurrentSearchIndex] = useState<number | null>(null);
+  
+  // 使用 ref 来防止保存操作过于频繁
+  const saveTimeoutRef = useRef<number | undefined>(undefined);
 
   // 从LocalStorage加载数据
   useEffect(() => {
@@ -102,28 +105,59 @@ export function Best10Provider({ children }: Best10ProviderProps) {
     }
   }, []);
 
-  // 自动保存到LocalStorage
+  // 自动保存到LocalStorage - 添加防抖优化
   const saveToStorage = useCallback(() => {
-    try {
-      const list: Best10List = {
-        id: generateId(),
-        name: config.title || '我的书籍BEST10',
-        books,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      saveBest10List(list);
-      saveConfig(config);
-    } catch (err) {
-      console.error('Failed to save data to storage:', err);
-      // 不设置error状态，避免干扰用户操作
+    // 清除之前的定时器
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
+    
+    // 设置新的定时器，延迟保存
+    saveTimeoutRef.current = setTimeout(() => {
+      try {
+        const list: Best10List = {
+          id: generateId(),
+          name: config.title || '我的书籍BEST10',
+          books,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        saveBest10List(list);
+        saveConfig(config);
+      } catch (err) {
+        console.error('Failed to save data to storage:', err);
+        // 不设置error状态，避免干扰用户操作
+      }
+    }, 500); // 500ms debounce delay
   }, [books, config]);
 
   // 当books或config变化时自动保存
   useEffect(() => {
     saveToStorage();
   }, [saveToStorage]);
+
+  // Cleanup function: clear pending timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        // Immediately save any pending changes before unmount
+        try {
+          const list: Best10List = {
+            id: generateId(),
+            name: config.title || '我的书籍BEST10',
+            books,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          saveBest10List(list);
+          saveConfig(config);
+        } catch (err) {
+          console.error('Failed to save data on unmount:', err);
+        }
+      }
+    };
+  }, []);
 
   /**
    * 更新书名
@@ -305,8 +339,8 @@ export function Best10Provider({ children }: Best10ProviderProps) {
     });
   }, []);
 
-  // Context值
-  const value: Best10ContextType = {
+  // Context值 - 使用 useMemo 优化，防止不必要的重渲染
+  const value: Best10ContextType = useMemo(() => ({
     // State
     books,
     config,
@@ -326,7 +360,24 @@ export function Best10Provider({ children }: Best10ProviderProps) {
     setError: handleSetError,
     setLoading: handleSetLoading,
     updateCustomCover,
-  };
+  }), [
+    books,
+    config,
+    isLoading,
+    error,
+    currentSearchIndex,
+    updateBookName,
+    selectBook,
+    removeBook,
+    reorderBooks,
+    updateConfig,
+    setSearchResults,
+    setSearching,
+    clearAllBooks,
+    handleSetError,
+    handleSetLoading,
+    updateCustomCover,
+  ]);
 
   return (
     <Best10Context.Provider value={value}>
