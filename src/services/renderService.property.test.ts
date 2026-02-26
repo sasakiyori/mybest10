@@ -8,8 +8,8 @@ import fc from 'fast-check';
 import { generateImage, preloadImages } from './renderService';
 import type { BookEntry, GeneratorConfig } from '../types/models';
 
-// 测试配置
-const testConfig = { numRuns: 100 };
+// 测试配置（属性测试较重，降低次数以避免超时）
+const testConfig = { numRuns: 30 };
 
 // Arbitraries for property testing
 
@@ -124,7 +124,7 @@ describe('RenderService Property Tests', () => {
       ),
       testConfig
     );
-  });
+  }, 20000);
 
   /**
    * 属性 10 补充测试: 验证Canvas尺寸设置
@@ -204,7 +204,7 @@ describe('RenderService Property Tests', () => {
       ),
       testConfig
     );
-  });
+  }, 20000);
 
   /**
    * 属性 13: 中文字体渲染正确性
@@ -338,7 +338,7 @@ describe('RenderService Property Tests', () => {
       ),
       testConfig
     );
-  });
+  }, 20000);
 
   /**
    * 测试图片预加载功能

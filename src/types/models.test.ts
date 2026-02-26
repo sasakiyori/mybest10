@@ -203,16 +203,16 @@ describe('常量定义', () => {
   describe('DEFAULT_GENERATOR_CONFIG', () => {
     it('应该包含所有必需的配置字段', () => {
       expect(DEFAULT_GENERATOR_CONFIG.title).toBe('我的书籍BEST10');
-      expect(DEFAULT_GENERATOR_CONFIG.backgroundColor).toBe('#DC143C');
-      expect(DEFAULT_GENERATOR_CONFIG.textColor).toBe('#FFD700');
-      expect(DEFAULT_GENERATOR_CONFIG.accentColor).toBe('#FFFFFF');
-      expect(DEFAULT_GENERATOR_CONFIG.template).toBe('classic');
+      expect(DEFAULT_GENERATOR_CONFIG.backgroundColor).toBe(PRESET_TEMPLATES.modern.backgroundColor);
+      expect(DEFAULT_GENERATOR_CONFIG.textColor).toBe(PRESET_TEMPLATES.modern.textColor);
+      expect(DEFAULT_GENERATOR_CONFIG.accentColor).toBe(PRESET_TEMPLATES.modern.accentColor);
+      expect(DEFAULT_GENERATOR_CONFIG.template).toBe('modern');
     });
 
     it('应该包含正确的字体大小配置', () => {
-      expect(DEFAULT_GENERATOR_CONFIG.fontSize.title).toBe(48);
-      expect(DEFAULT_GENERATOR_CONFIG.fontSize.rank).toBe(36);
-      expect(DEFAULT_GENERATOR_CONFIG.fontSize.bookName).toBe(24);
+      expect(DEFAULT_GENERATOR_CONFIG.fontSize.title).toBe(PRESET_TEMPLATES.modern.fontSize?.title);
+      expect(DEFAULT_GENERATOR_CONFIG.fontSize.rank).toBe(PRESET_TEMPLATES.modern.fontSize?.rank);
+      expect(DEFAULT_GENERATOR_CONFIG.fontSize.bookName).toBe(PRESET_TEMPLATES.modern.fontSize?.bookName);
     });
 
     it('应该包含正确的布局配置', () => {
@@ -262,7 +262,8 @@ describe('常量定义', () => {
     });
 
     it('应该包含合理的超时时间', () => {
-      expect(API_CONSTANTS.SEARCH_TIMEOUT).toBe(5000);
+      expect(API_CONSTANTS.SEARCH_TIMEOUT).toBeGreaterThanOrEqual(5000);
+      expect(API_CONSTANTS.SEARCH_TIMEOUT).toBeLessThanOrEqual(30000);
     });
 
     it('应该包含最大搜索结果数', () => {

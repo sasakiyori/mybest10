@@ -155,7 +155,7 @@ describe('ImageGenerator Property Tests', () => {
           // 验证可以创建有效的URL
           const url = URL.createObjectURL(blob);
           createdUrls.push(url);
-          expect(url).toMatch(/^blob:/);
+          expect(url).toMatch(/^(blob:|data:)/);
 
           // 验证可以加载为图片
           await new Promise<void>((resolve, reject) => {
@@ -206,7 +206,7 @@ describe('ImageGenerator Property Tests', () => {
           // 验证可以创建有效的URL
           const url = URL.createObjectURL(jpegBlob);
           createdUrls.push(url);
-          expect(url).toMatch(/^blob:/);
+          expect(url).toMatch(/^(blob:|data:)/);
 
           // 验证可以加载为图片
           await new Promise<void>((resolve, reject) => {

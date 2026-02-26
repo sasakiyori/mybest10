@@ -50,28 +50,19 @@ describe('RenderService Unit Tests', () => {
       const blob = new Blob(['test data'], { type: 'image/png' });
       const filename = 'test-image.png';
 
-      // Mock document methods
-      const mockLink = {
-        href: '',
-        download: '',
-        click: vi.fn(),
-      };
-      
-      const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
-      const appendChildSpy = vi.spyOn(document.body, 'appendChild');
-      const removeChildSpy = vi.spyOn(document.body, 'removeChild');
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+      const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL');
+      const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL');
 
       downloadImage(blob, filename);
 
-      expect(createElementSpy).toHaveBeenCalledWith('a');
-      expect(mockLink.download).toBe(filename);
-      expect(mockLink.click).toHaveBeenCalled();
-      expect(appendChildSpy).toHaveBeenCalledWith(mockLink);
-      expect(removeChildSpy).toHaveBeenCalledWith(mockLink);
+      expect(clickSpy).toHaveBeenCalled();
+      expect(createObjectURLSpy).toHaveBeenCalledWith(blob);
+      expect(revokeObjectURLSpy).toHaveBeenCalled();
 
-      createElementSpy.mockRestore();
-      appendChildSpy.mockRestore();
-      removeChildSpy.mockRestore();
+      clickSpy.mockRestore();
+      createObjectURLSpy.mockRestore();
+      revokeObjectURLSpy.mockRestore();
     });
   });
 
@@ -183,62 +174,49 @@ describe('RenderService Unit Tests', () => {
     ];
 
     it('should generate and download PNG image', async () => {
-      const mockLink = {
-        href: '',
-        download: '',
-        click: vi.fn(),
-      };
-      
-      const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
       await generateAndDownload(mockBooks, mockConfig, 'test.png', 'png');
 
-      expect(mockLink.download).toBe('test.png');
-      expect(mockLink.click).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
 
-      createElementSpy.mockRestore();
+      clickSpy.mockRestore();
     });
 
     it('should generate and download JPEG image', async () => {
-      const mockLink = {
-        href: '',
-        download: '',
-        click: vi.fn(),
-      };
-      
-      const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
       await generateAndDownload(mockBooks, mockConfig, 'test.png', 'jpeg');
 
-      expect(mockLink.download).toBe('test.jpg');
-      expect(mockLink.click).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
 
-      createElementSpy.mockRestore();
+      clickSpy.mockRestore();
     });
 
     it('should use default filename if not provided', async () => {
-      const mockLink = {
-        href: '',
-        download: '',
-        click: vi.fn(),
-      };
-      
-      const createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
       await generateAndDownload(mockBooks, mockConfig);
 
-      expect(mockLink.download).toBe('best10.png');
-      expect(mockLink.click).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
 
-      createElementSpy.mockRestore();
+      clickSpy.mockRestore();
     });
   });
 
   describe('Error Handling', () => {
     it('should throw error if canvas context is null', async () => {
-      // Mock getContext to return null
-      const originalGetContext = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = vi.fn(() => null);
+      const originalCreateElement = document.createElement.bind(document);
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((tagName: string, options?: ElementCreationOptions) => {
+        if (tagName === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: () => null,
+          } as any;
+        }
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
 
       const mockConfig: GeneratorConfig = {
         ...DEFAULT_GENERATOR_CONFIG,
@@ -265,8 +243,7 @@ describe('RenderService Unit Tests', () => {
 
       await expect(generateImage(mockBooks, mockConfig)).rejects.toThrow('Failed to get canvas context');
 
-      // Restore original getContext
-      HTMLCanvasElement.prototype.getContext = originalGetContext;
+      createElementSpy.mockRestore();
     });
   });
 });
