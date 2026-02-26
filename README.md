@@ -2,7 +2,7 @@
 
 一个现代化的Web应用，帮助你创建个性化的书单排行榜图片，完美适配社交媒体分享。
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.2-646cff.svg)](https://vitejs.dev/)
@@ -22,6 +22,7 @@
 - 🎯 **拖拽排序** - 轻松调整书籍排名顺序
 - ⚡ **快捷键支持** - 提升操作效率
 - 🧪 **全面测试** - 单元测试 + 属性测试保证质量
+- 🖥️ **后端服务** - 独立后端代理服务，解决CORS限制，缓存图片资源
 
 ## 🚀 快速开始
 
@@ -37,26 +38,46 @@
 git clone <repository-url>
 cd mybest10
 
-# 安装依赖
+# 安装前端依赖
 npm install
+
+# 安装后端依赖
+cd server && npm install && cd ..
 ```
 
 ### 开发
 
+**启动前端开发服务器**
+
 ```bash
-# 启动开发服务器
+# 启动前端开发服务器
 npm run dev
 
-# 应用将在 http://localhost:5173 运行
+# 前端应用将在 http://localhost:5173 运行
+```
+
+**启动后端服务**
+
+```bash
+# 进入 server 目录
+cd server
+
+# 启动后端服务（生产模式）
+npm start
+
+# 或以开发模式启动（文件变更自动重启）
+npm run dev
+
+# 后端服务将在 http://localhost:3001 运行
 ```
 
 ### 构建
 
 ```bash
-# 构建生产版本
+# 构建前端生产版本
 npm run build
 
-# 预览生产构建
+# 预览前端生产构建
 npm run preview
 ```
 
@@ -269,7 +290,7 @@ npm test
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+本项目采用 Apache 2.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 🙏 致谢
 
