@@ -4,7 +4,7 @@
  * 需求: 8.1, 8.2, 8.3, 8.4, 8.5
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { GeneratorConfig, TemplateType, LayoutMode } from '../types/models';
 import { PRESET_TEMPLATES } from '../types/constants';
 
@@ -63,6 +63,37 @@ export function StyleCustomizer({ config, onConfigChange, onPreview }: StyleCust
   const [isExpanded, setIsExpanded] = useState(false);
   const backgroundImageInputRef = useRef<HTMLInputElement>(null);
 
+  // 本地状态缓冲，防止每次击键都触发全局 context 更新
+  const [localTitle, setLocalTitle] = useState(config.title);
+  const [localSubtitle, setLocalSubtitle] = useState(config.subtitle || '');
+  const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const subtitleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 当外部 config.title 变化时（如切换模板）同步本地状态并取消未提交的防抖
+  useEffect(() => {
+    if (titleDebounceRef.current) {
+      clearTimeout(titleDebounceRef.current);
+      titleDebounceRef.current = null;
+    }
+    setLocalTitle(config.title);
+  }, [config.title]);
+
+  useEffect(() => {
+    if (subtitleDebounceRef.current) {
+      clearTimeout(subtitleDebounceRef.current);
+      subtitleDebounceRef.current = null;
+    }
+    setLocalSubtitle(config.subtitle || '');
+  }, [config.subtitle]);
+
+  // 卸载时清理防抖定时器
+  useEffect(() => {
+    return () => {
+      if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
+      if (subtitleDebounceRef.current) clearTimeout(subtitleDebounceRef.current);
+    };
+  }, []);
+
   /**
    * 处理模板切换
    */
@@ -113,18 +144,30 @@ export function StyleCustomizer({ config, onConfigChange, onPreview }: StyleCust
   };
 
   /**
-   * 处理标题变化
+   * 处理标题变化 - 使用本地状态 + 防抖，避免每次击键触发全局重渲染
    */
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onConfigChange({ title: e.target.value });
-  };
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalTitle(value);
+    if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
+    titleDebounceRef.current = setTimeout(() => {
+      onConfigChange({ title: value });
+      titleDebounceRef.current = null;
+    }, 150);
+  }, [onConfigChange]);
 
   /**
-   * 处理副标题变化
+   * 处理副标题变化 - 使用本地状态 + 防抖
    */
-  const handleSubtitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onConfigChange({ subtitle: e.target.value || undefined });
-  };
+  const handleSubtitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalSubtitle(value);
+    if (subtitleDebounceRef.current) clearTimeout(subtitleDebounceRef.current);
+    subtitleDebounceRef.current = setTimeout(() => {
+      onConfigChange({ subtitle: value || undefined });
+      subtitleDebounceRef.current = null;
+    }, 150);
+  }, [onConfigChange]);
 
   /**
    * 处理背景颜色变化
@@ -320,7 +363,7 @@ export function StyleCustomizer({ config, onConfigChange, onPreview }: StyleCust
         <input
           id="title-input"
           type="text"
-          value={config.title}
+          value={localTitle}
           onChange={handleTitleChange}
           placeholder="输入标题，如：我的书籍BEST10"
           className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-700 border-2 border-slate-600 rounded-lg sm:rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 transition-all duration-200 text-slate-100 placeholder-slate-500 text-xs sm:text-sm"
@@ -337,7 +380,7 @@ export function StyleCustomizer({ config, onConfigChange, onPreview }: StyleCust
           <input
             id="subtitle-input"
             type="text"
-            value={config.subtitle || ''}
+            value={localSubtitle}
             onChange={handleSubtitleChange}
             placeholder="输入副标题"
             className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-700 border-2 border-slate-600 rounded-lg sm:rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 transition-all duration-200 text-slate-100 placeholder-slate-500 text-xs sm:text-sm"

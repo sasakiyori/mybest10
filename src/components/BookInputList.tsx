@@ -118,7 +118,7 @@ const BookInputItem = React.memo(({ book, index, onInputCommit, onSearchClick }:
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           placeholder={`输入第${book.rank}名书籍...`}
-          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-700 border-2 border-slate-600 rounded-lg sm:rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 transition-all duration-200 text-sm sm:text-base text-slate-100 placeholder-slate-400"
+          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-700 border-2 border-slate-600 rounded-lg sm:rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 transition-[border-color,box-shadow] duration-200 text-sm sm:text-base text-slate-100 placeholder-slate-400"
           data-testid={`book-input-${index}`}
         />
         {hasInput && (
